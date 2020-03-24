@@ -26,6 +26,7 @@ def loadImage(name):
     colorkey = image.get_at((0, 0))
     image.set_colorkey(colorkey, pygame.RLEACCEL)
     image = image.convert()
+    
     return image
 
 class Selection:

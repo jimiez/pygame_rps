@@ -150,18 +150,40 @@ class SequenceStart(Sequence):
         self.subtext_rect = self.subtext.get_rect()
         self.subtext_rect.center = (SIZE_SCREEN[0] / 2, SIZE_SCREEN[1] / 2 + 100)
 
+        # Create a timer for changing the image
+        self.newimage = pygame.USEREVENT
+        pygame.time.set_timer(self.newimage, 1000)
+
+        files = ["rock", "paper", "scissors"]
+        self.images = []
+
+        for i in files:
+            img = loadImage(i)
+            self.images.append(img)
+        
+        self.time_elapsed = 0
+        self.imgcounter = 0
+
     def input(self, events, keys):
         # See if any key is pressed start the actual game
         if sum(keys) > 0:
             self.nextSequence(SequenceSelection(self.scoreboard))
+        
+        for e in events:
+            if e.type == self.newimage:
+                self.imgcounter += 1
 
     def update(self):
-        pass
-
+        if self.imgcounter > 2:
+            self.imgcounter = 0
+ 
     def render(self, screen):
         screen.fill(COLOR_WHITE)
         screen.blit(self.maintext, self.maintext_rect)
         screen.blit(self.subtext, self.subtext_rect)
+        img_rect = self.images[self.imgcounter].get_rect()
+        img_rect.center = (SIZE_SCREEN[0] / 2, SIZE_SCREEN[1] / 2)
+        screen.blit(self.images[self.imgcounter], img_rect)
     
 class SequenceSelection(Sequence):
     """
