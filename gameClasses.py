@@ -6,7 +6,7 @@ from constants import *
 
 class GameLogic:
     """
-    This class that contains the entire game logic of Rock, Paper, Scissors. Includes also rudimentary AI and bookkeeping.
+    This class contains the entire game logic of Rock, Paper, Scissors. Includes also rudimentary AI and bookkeeping.
     """
     def __init__(self):
         self.rounds = 0
