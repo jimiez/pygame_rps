@@ -1,33 +1,7 @@
 # Classes pertaining to graphical elements of the game are contained within this source file
 
-import random
 import pygame
-import os
 from constants import *
-
-def loadImage(name):
-    """
-    Function for loading images
-
-    Parameters:
-
-        - name - str, Filename to be loaded (without file extension)
-
-    Returns: a correctly formatted pygame.Surface
-    """
-
-    try:
-        path = os.getcwd() + "\\media\\"
-        filename = path + name + ".png"
-        image = pygame.image.load(filename)
-    except FileNotFoundError:
-        print("Could not locate necessary image file {}.png".format(name))
-
-    colorkey = image.get_at((0, 0))
-    image.set_colorkey(colorkey, pygame.RLEACCEL)
-    image = image.convert()
-    
-    return image
 
 class Selection:
     """
@@ -39,10 +13,10 @@ class Selection:
 
         - pos - tuple, Position of the element on the screen as an offset from the middle
     """
-    def __init__(self, image, pos):
-        self.image = loadImage(image)
-        self.imageOrig = self.image
-        self.name = image
+    def __init__(self, name, image, pos):
+        self.image = pygame.Surface.copy(image)
+        self.imageOrig = pygame.Surface.copy(image)
+        self.name = name
         self.rect = self.image.get_rect()
         self.rect.center = (SIZE_SCREEN[0] / 2 + pos[0], SIZE_SCREEN[1] / 2 + pos[1])
         self.rectOrig = self.rect
@@ -59,14 +33,16 @@ class Selection:
     def drawHighlight(self):
         # Draw a red rectangle around the selection when mouse cursor hovers
         pos = pygame.mouse.get_pos()
-
+        
         if self.rect.collidepoint(pos) and not self.highlighted:
             pygame.draw.rect(self.image, COLOR_RED, pygame.Rect(0,0, 90, 90), 3)
-        elif self.rect.collidepoint(pos):
-            pass
-        else:
-            self.image = loadImage(self.name)
+            self.highlighted = True
+        elif self.highlighted and not self.rect.collidepoint(pos):
+            self.image = pygame.Surface.copy(self.imageOrig)
             self.highlighted = False
+        else:
+            pass
+
 
 class Scoreboard:
     """
@@ -83,7 +59,7 @@ class Scoreboard:
     def __init__(self, gamelogic):
         self.gamelogic = gamelogic
         self.scorebackground = pygame.Surface((150, 100))
-        self.font = pygame.font.SysFont(FONT_MAIN, 36)
+        self.font = pygame.font.SysFont(FONT_NAME, FONT_NORMAL)
         self.rect = self.scorebackground.get_rect()
 
     def update(self, screen):
@@ -120,7 +96,7 @@ class Button:
         self.rect = self.button.get_rect()
         self.rect.center = (SIZE_SCREEN[0] / 2 + pos[0], SIZE_SCREEN[1] / 2 + pos[1])
 
-        font = pygame.font.Font(FONT_MAIN, 36)
+        font = pygame.font.SysFont(FONT_NAME, FONT_SMALL)
         text = font.render(text, 1, COLOR_BLACK)
         text_rect = text.get_rect()
         text_rect.center = (size[0] / 2, size[1] / 2)
@@ -154,7 +130,7 @@ class ResultDisplayer:
         self.result = result
 
         # Loading the images of previous round's actions
-        pimage = loadImage(playerchoice)
+        pimage = DICT_IMAGES[playerchoice]
 
         # Rotate and flip the image of player's choice before moving into place relative to the middle of the screen
         self.playerchoice = pygame.transform.rotate(pimage, 90)
@@ -163,13 +139,13 @@ class ResultDisplayer:
         self.playerchoice_rect.center = (SIZE_SCREEN[0] / 2 - 150, SIZE_SCREEN[1] / 2)
 
         # Do the above for the computer
-        cimage = loadImage(computerchoice)
+        cimage = DICT_IMAGES[computerchoice]
         self.computerchoice = pygame.transform.rotate(cimage, 90)
         self.computerchoice_rect = self.computerchoice.get_rect()
         self.computerchoice_rect.center = (SIZE_SCREEN[0] / 2 + 150, SIZE_SCREEN[1] / 2)
 
         # Some text placement
-        self.font = pygame.font.SysFont(FONT_MAIN, 36)
+        self.font = pygame.font.SysFont(FONT_NAME, FONT_NORMAL)
         self.ptext = self.font.render("You chose", 1, COLOR_BLACK)
         self.ptext_rect = self.ptext.get_rect()
         self.ptext_rect.center = (SIZE_SCREEN[0] / 2 - 150, SIZE_SCREEN[1] / 2 - 50)

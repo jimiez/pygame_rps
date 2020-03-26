@@ -6,20 +6,49 @@ It's not pretty, it's not very sophisticated, but it works.
 
 # Main loop of the game and initialization are contained within this file.
 
-import sys, pygame
+import sys, os, pygame
 from uiClasses import *
 from gameClasses import *
 from constants import *
 
+def resource_path(relative):
+    """
+    This function ensures that relative paths work when the game is frozen to .exe
 
-# initialize the game
-pygame.init()
-# Have to initialize a dummy screen here in order to get everything else initialized
-pygame.display.set_mode((0,0))
-pygame.display.set_caption('Rock, Paper & Scissors!')
-clock = pygame.time.Clock()
-gamelogic = GameLogic()        
-scoreboard = Scoreboard(gamelogic)
+    Parameters:
+
+        - relative - str, relative path to file
+    
+    Returns: correctly formatted path depending on run location
+    """
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative)
+    else:
+        return os.path.join(relative)
+
+def loadImage(name):
+    """
+    Function for loading images
+
+    Parameters:
+
+        - name - str, Filename to be loaded (without file extension)
+
+    Returns: a correctly formatted pygame.Surface containing the image
+    """
+
+    try:
+        filename = "media\\" + name + ".png"
+        filedir = resource_path(filename)
+        image = pygame.image.load(filedir)
+    except FileNotFoundError:
+        print("Could not locate necessary image file {}.png".format(name))
+
+    colorkey = image.get_at((0, 0))
+    image.set_colorkey(colorkey, pygame.RLEACCEL)
+    image = image.convert()
+    
+    return image
 
 def run_game(size, fps, sequence):
     """
@@ -56,6 +85,24 @@ def run_game(size, fps, sequence):
         
         pygame.display.update()
         clock.tick(fps)
+
+
+# initialize the game
+pygame.init()
+# Have to initialize a dummy screen here in order to get everything else initialized
+pygame.display.set_mode((0,0))
+pygame.display.set_caption('Rock, Paper & Scissors!')
+clock = pygame.time.Clock()
+gamelogic = GameLogic()        
+scoreboard = Scoreboard(gamelogic)
+
+# Load up all the images used across the different classes into a dictionary
+
+files = ["rock", "paper", "scissors"]
+
+for i in files:
+    img = loadImage(i)
+    DICT_IMAGES[i] = img
 
 # Call the main loop
 run_game(SIZE_SCREEN, 10, SequenceStart(scoreboard))

@@ -1,6 +1,7 @@
 # Classes pertaining to game operations and logic are contained within this source file
 
 import pygame
+import random
 from uiClasses import *
 from constants import *
 
@@ -140,29 +141,24 @@ class SequenceStart(Sequence):
     def __init__(self, scoreboard):
         Sequence.__init__(self)
         self.scoreboard = scoreboard
-        self.mainfont = pygame.font.Font(FONT_MAIN, 42)
+        self.mainfont = pygame.font.SysFont(FONT_NAME, FONT_HUGE)
         self.maintext = self.mainfont.render("ROCK, PAPER & SCISSORS!", 1, COLOR_BLACK)
         self.maintext_rect = self.maintext.get_rect()
         self.maintext_rect.center = (SIZE_SCREEN[0] / 2, SIZE_SCREEN[1] / 2 - 100)
 
-        self.subfont = pygame.font.Font(FONT_MAIN, 24)
+        self.subfont = pygame.font.SysFont(FONT_NAME, FONT_NORMAL)
         self.subtext = self.subfont.render("Press any key to start", 1, COLOR_BLUE)
         self.subtext_rect = self.subtext.get_rect()
         self.subtext_rect.center = (SIZE_SCREEN[0] / 2, SIZE_SCREEN[1] / 2 + 100)
-
-        # Create a timer for changing the image
-        self.newimage = pygame.USEREVENT
-        pygame.time.set_timer(self.newimage, 1000)
-
-        files = ["rock", "paper", "scissors"]
-        self.images = []
-
-        for i in files:
-            img = loadImage(i)
-            self.images.append(img)
         
-        self.time_elapsed = 0
-        self.imgcounter = 0
+        # Create a timer for changing the images every quarter of a second
+        self.changeimage = pygame.USEREVENT
+        pygame.time.set_timer(self.changeimage, 750)
+        self.newimages = False
+
+        # Load up two random images
+        self.leftimage = random.choice(list(DICT_IMAGES.values()))
+        self.rightimage = random.choice(list(DICT_IMAGES.values()))
 
     def input(self, events, keys):
         # See if any key is pressed start the actual game
@@ -170,20 +166,35 @@ class SequenceStart(Sequence):
             self.nextSequence(SequenceSelection(self.scoreboard))
         
         for e in events:
-            if e.type == self.newimage:
-                self.imgcounter += 1
+            if e.type == self.changeimage:
+                self.newimages = True
 
     def update(self):
-        if self.imgcounter > 2:
-            self.imgcounter = 0
- 
+        if self.newimages:
+            leftoldimage = self.leftimage
+            rightoldimage = self.rightimage
+
+            # Make sure that the same images aren't repeated.
+            while self.leftimage == leftoldimage:
+                self.leftimage = random.choice(list(DICT_IMAGES.values()))
+
+            while self.rightimage == rightoldimage:
+                self.rightimage = random.choice(list(DICT_IMAGES.values()))
+            
+            self.newimages = False
+      
     def render(self, screen):
         screen.fill(COLOR_WHITE)
         screen.blit(self.maintext, self.maintext_rect)
         screen.blit(self.subtext, self.subtext_rect)
-        img_rect = self.images[self.imgcounter].get_rect()
-        img_rect.center = (SIZE_SCREEN[0] / 2, SIZE_SCREEN[1] / 2)
-        screen.blit(self.images[self.imgcounter], img_rect)
+
+        leftimg_rect = self.leftimage.get_rect()
+        leftimg_rect.center = (SIZE_SCREEN[0] / 2 - 70, SIZE_SCREEN[1] / 2)
+        screen.blit(self.leftimage, leftimg_rect)
+
+        rightimg_rect = self.rightimage.get_rect()
+        rightimg_rect.center = (SIZE_SCREEN[0] / 2 + 70, SIZE_SCREEN[1] / 2)
+        screen.blit(self.rightimage, rightimg_rect)
     
 class SequenceSelection(Sequence):
     """
@@ -205,7 +216,7 @@ class SequenceSelection(Sequence):
         
         # Initialize and load the game selections (i.e. rock, paper, scissors). 
         for i in range(0, 3):
-            self.selections.append(Selection(images[i], (offsets[i], 0)))
+            self.selections.append(Selection(images[i], DICT_IMAGES[images[i]], (offsets[i], 0)))
     
         # Init rest
         self.scoreboard = scoreboard
